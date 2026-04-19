@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+*.db
+*.sqlite*
+backend/data/watch.db
+backend/data/fixtures/
+
+# Node
+node_modules/
+dist/
+.vite/
+
+# Env — never commit secrets (ScraperAPI keys, proxy passwords).
+.env
+.env.local
+backend/.env
+frontend/.env
+
+# IDE
+.idea/
+.vscode/
+.DS_Store
