@@ -61,7 +61,7 @@ operational signals** (what changed) from **(b) portfolio analytics**
 
 2–4 minutes is enough: dashboard → signal → compare → analytics → buzz → optional Ask AI / refresh history.
 
-**Demo link (Loom):** https://www.loom.com/share/aca83eecbcc0413981707bff7b9d973b
+**Demo link (Loom):** https://www.loom.com/share/45f29cf2394148a88d20538d821218a7
 
 ## Demo flow (no internet needed)
 
