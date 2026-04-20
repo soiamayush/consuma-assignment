@@ -7,6 +7,7 @@ import { api } from "../api";
 import { Pager } from "../components/Pager";
 import { SignalCard } from "../components/SignalCard";
 import { AIExplainCard } from "../components/AIExplainCard";
+import { PageHero } from "../components/PageHero";
 import { formatPrice } from "../formatPrice";
 
 export function CompetitorPage() {
@@ -101,70 +102,96 @@ export function CompetitorPage() {
 
   return (
     <div className="space-y-8">
-      <div className="flex items-start justify-between flex-wrap gap-4">
-        <div>
-          <div className="text-xs text-ink-500 uppercase tracking-wide">Brand</div>
-          <h1 className="text-2xl font-semibold tracking-tight mt-1 flex items-center gap-2 flex-wrap">
-            {c?.name ?? "…"}
-            {c?.is_anchor && (
-              <span className="chip-accent text-xs font-normal normal-case">Your brand · anchor</span>
-            )}
-          </h1>
-          {c?.description && <p className="text-ink-600 mt-1 max-w-xl text-sm">{c.description}</p>}
-          {c && (
-            <div className="mt-2 text-xs text-ink-500 flex gap-3 flex-wrap">
+      <PageHero
+        eyebrow={c?.is_anchor ? "Your brand" : "Brand profile"}
+        theme={c?.is_anchor ? "rose" : "ink"}
+        title={
+          c?.name ? (
+            <span className="gradient-text">{c.name}</span>
+          ) : (
+            "…"
+          )
+        }
+        subtitle={c?.description ?? undefined}
+        badge={
+          c ? (
+            <div className="flex flex-wrap items-center gap-3 text-xs text-ink-600">
               <a
                 href={c.website}
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex items-center gap-1 hover:text-ink-900"
+                className="inline-flex items-center gap-1 font-medium text-ink-800 hover:text-blush-700"
               >
-                Website <ExternalLink size={12} />
+                Visit site <ExternalLink size={12} />
               </a>
-              <span>·</span>
-              <span>Brand weight {c.brand_weight.toFixed(2)}</span>
+              <span className="text-ink-300">·</span>
+              <span>
+                Brand weight{" "}
+                <span className="font-semibold text-ink-800">
+                  {c.brand_weight.toFixed(2)}
+                </span>
+              </span>
               {c.last_ingested_at && (
                 <>
-                  <span>·</span>
+                  <span className="text-ink-300">·</span>
                   <span>
-                    Last run {formatDistanceToNow(new Date(c.last_ingested_at), { addSuffix: true })}
+                    Last refreshed{" "}
+                    {formatDistanceToNow(new Date(c.last_ingested_at), {
+                      addSuffix: true,
+                    })}
                   </span>
                 </>
               )}
             </div>
-          )}
-        </div>
-        <div className="flex gap-2">
-          <div className="card px-4 py-2 text-sm">
-            <div className="text-ink-500 text-xs">Products</div>
-            <div className="font-semibold text-lg tabular-nums">{c?.product_count ?? "—"}</div>
+          ) : null
+        }
+        actions={
+          <div className="grid grid-cols-3 gap-2">
+            <div className="rounded-xl bg-white/80 backdrop-blur border border-white/60 px-4 py-2.5 shadow-sm">
+              <div className="text-[10px] uppercase tracking-[0.14em] text-ink-500 font-semibold">
+                Products
+              </div>
+              <div className="font-display font-semibold text-lg tabular-nums text-ink-900">
+                {c?.product_count ?? "—"}
+              </div>
+            </div>
+            <div className="rounded-xl bg-white/80 backdrop-blur border border-white/60 px-4 py-2.5 shadow-sm">
+              <div className="text-[10px] uppercase tracking-[0.14em] text-ink-500 font-semibold">
+                Signals
+              </div>
+              <div className="font-display font-semibold text-lg tabular-nums text-ink-900">
+                {c?.signal_count ?? "—"}
+              </div>
+            </div>
+            <div className="rounded-xl bg-white/80 backdrop-blur border border-white/60 px-4 py-2.5 shadow-sm">
+              <div className="text-[10px] uppercase tracking-[0.14em] text-ink-500 font-semibold">
+                Posts
+              </div>
+              <div className="font-display font-semibold text-lg tabular-nums text-ink-900">
+                {c?.blog_count ?? "—"}
+              </div>
+            </div>
           </div>
-          <div className="card px-4 py-2 text-sm">
-            <div className="text-ink-500 text-xs">Signals</div>
-            <div className="font-semibold text-lg tabular-nums">{c?.signal_count ?? "—"}</div>
-          </div>
-          <div className="card px-4 py-2 text-sm">
-            <div className="text-ink-500 text-xs">Posts</div>
-            <div className="font-semibold text-lg tabular-nums">{c?.blog_count ?? "—"}</div>
-          </div>
-        </div>
-      </div>
+        }
+      />
 
       {aiPayload && (
         <AIExplainCard
           view="brand_brief"
           payload={aiPayload}
-          title={`AI brief · ${c?.name ?? "this brand"}`}
+          title={`Brief · ${c?.name ?? "this brand"}`}
           subtitle={
             c?.is_anchor
-              ? "How the anchor itself is shaped right now."
-              : "Strengths, weaknesses, recent moves and what to watch — vs the anchor."
+              ? "A candid read on where your own portfolio sits right now."
+              : "Strengths, weaknesses, recent moves — and what to watch versus your brand."
           }
         />
       )}
 
       <section>
-        <h2 className="text-lg font-semibold mb-3">Recent signals</h2>
+        <h2 className="font-display text-xl font-semibold mb-3 text-ink-900">
+          Recent signals
+        </h2>
         <div className="space-y-2">
           {!signals.isLoading && signalItems.length === 0 && (
             <div className="card p-4 text-sm text-ink-500">No signals yet for this brand.</div>
@@ -186,13 +213,15 @@ export function CompetitorPage() {
       </section>
 
       <section>
-        <h2 className="text-lg font-semibold mb-3">Catalog</h2>
+        <h2 className="font-display text-xl font-semibold mb-3 text-ink-900">
+          Catalog
+        </h2>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
           {productItems.map((p) => (
             <Link
               key={p.id}
               to={`/products/${p.id}`}
-              className="card overflow-hidden hover:border-ink-400 transition-colors"
+              className="card overflow-hidden hover:shadow-lift hover:-translate-y-[1px] transition-all"
             >
               <div className="aspect-square bg-ink-100 overflow-hidden">
                 {p.image_url ? (
@@ -238,7 +267,9 @@ export function CompetitorPage() {
 
       {blog.data && blog.data.length > 0 && (
         <section>
-          <h2 className="text-lg font-semibold mb-3">Recent posts</h2>
+          <h2 className="font-display text-xl font-semibold mb-3 text-ink-900">
+            Recent posts
+          </h2>
           <ul className="space-y-2">
             {blog.data.map((b) => (
               <li key={b.id} className="card p-3">

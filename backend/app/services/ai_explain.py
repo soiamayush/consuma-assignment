@@ -23,6 +23,8 @@ from __future__ import annotations
 import hashlib
 import json
 import logging
+import time
+import uuid
 from dataclasses import dataclass
 from functools import lru_cache
 from typing import Any, Optional
@@ -30,6 +32,22 @@ from typing import Any, Optional
 from ..config import get_settings
 
 logger = logging.getLogger(__name__)
+
+def _key_hint(k: str | None) -> str:
+    """Return a safe, non-secret key identifier for logs."""
+    if not k:
+        return "missing"
+    k = k.strip()
+    if len(k) <= 8:
+        return "present"
+    return f"…{k[-4:]}"
+
+
+def _key_fp(k: str | None) -> str:
+    """Short, stable fingerprint for correlating which key is active."""
+    if not k:
+        return "missing"
+    return hashlib.sha1(k.strip().encode("utf-8")).hexdigest()[:10]
 
 
 # ---------------------------------------------------------------------------
@@ -246,7 +264,19 @@ def explain(
         max_output_tokens=max(512, min(settings.gemini_max_output_tokens, 4096)),
     )
 
+    call_id = uuid.uuid4().hex[:10]
+    t0 = time.perf_counter()
     try:
+        logger.info(
+            "gemini.explain.start id=%s view=%s model=%s key=%s key_fp=%s payload_chars=%s question=%s",
+            call_id,
+            view,
+            settings.gemini_model,
+            _key_hint(settings.gemini_api_key),
+            _key_fp(settings.gemini_api_key),
+            len(payload_json),
+            bool(question),
+        )
         resp = client.models.generate_content(
             model=settings.gemini_model,
             contents=[gtypes.Content(role="user", parts=[gtypes.Part.from_text(text=user_prompt)])],
@@ -254,13 +284,32 @@ def explain(
         )
         text = (resp.text or "").strip()
     except Exception as exc:
-        logger.exception("Gemini explain call failed (view=%s)", view)
+        ms = int((time.perf_counter() - t0) * 1000)
+        logger.exception(
+            "gemini.explain.error id=%s view=%s model=%s key_fp=%s ms=%s err=%s",
+            call_id,
+            view,
+            settings.gemini_model,
+            _key_fp(settings.gemini_api_key),
+            ms,
+            type(exc).__name__,
+        )
         return {
             "text": f"_(Gemini call failed: {exc})_",
             "model": settings.gemini_model,
             "cached": False,
             "view": view,
         }
+    ms = int((time.perf_counter() - t0) * 1000)
+    logger.info(
+        "gemini.explain.ok id=%s view=%s model=%s key_fp=%s ms=%s text_chars=%s",
+        call_id,
+        view,
+        settings.gemini_model,
+        _key_fp(settings.gemini_api_key),
+        ms,
+        len(text or ""),
+    )
 
     if not text:
         text = "_(Model returned no text — try regenerating or shrinking the input.)_"

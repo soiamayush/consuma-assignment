@@ -2,6 +2,7 @@ import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { api } from "../api";
 import { Pager } from "../components/Pager";
+import { PageHero } from "../components/PageHero";
 import { distanceFromApiUtc, formatInIst, parseApiUtc } from "../time";
 
 export function RunsPage() {
@@ -17,39 +18,57 @@ export function RunsPage() {
   const total = runs.data?.total ?? 0;
 
   return (
-    <div className="space-y-4">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Ingestion runs</h1>
-        <p className="text-ink-500 text-sm mt-1">
-          Observability for each scrape run · polled every 5s.
-        </p>
-      </div>
+    <div className="space-y-6">
+      <PageHero
+        eyebrow="Behind the scenes"
+        theme="sky"
+        title={
+          <>
+            Refresh <span className="gradient-text">history</span>
+          </>
+        }
+        subtitle={
+          <>
+            A live log of every catalog refresh — new items seen, changes
+            detected, and signals raised. Auto-updates every few seconds.
+          </>
+        }
+      />
       <div className="card overflow-hidden">
         <table className="w-full text-sm">
-          <thead className="text-xs text-ink-500 bg-ink-50">
+          <thead className="text-[11px] text-ink-500 bg-gradient-to-r from-cream-50/60 to-white/40 uppercase tracking-[0.12em]">
             <tr>
-              <th className="p-3 text-left">
-                Started <span className="font-normal text-ink-400">(IST)</span>
+              <th className="p-3 text-left font-semibold">
+                Started{" "}
+                <span className="font-normal text-ink-400 normal-case tracking-normal">
+                  (IST)
+                </span>
               </th>
-              <th className="p-3 text-left">
-                Finished <span className="font-normal text-ink-400">(IST)</span>
+              <th className="p-3 text-left font-semibold">
+                Finished{" "}
+                <span className="font-normal text-ink-400 normal-case tracking-normal">
+                  (IST)
+                </span>
               </th>
-              <th className="p-3 text-left">Source</th>
-              <th className="p-3 text-right">Seen</th>
-              <th className="p-3 text-right">New</th>
-              <th className="p-3 text-right">Changed</th>
-              <th className="p-3 text-right">Signals</th>
-              <th className="p-3 text-left">Status</th>
+              <th className="p-3 text-left font-semibold">Source</th>
+              <th className="p-3 text-right font-semibold">Seen</th>
+              <th className="p-3 text-right font-semibold">New</th>
+              <th className="p-3 text-right font-semibold">Changed</th>
+              <th className="p-3 text-right font-semibold">Signals</th>
+              <th className="p-3 text-left font-semibold">Status</th>
             </tr>
           </thead>
           <tbody>
             {items.map((r) => (
-              <tr key={r.id} className="border-t border-ink-100">
+              <tr key={r.id} className="border-t border-ink-100 hover:bg-white/60">
                 <td className="p-3">
                   <div className="font-medium tabular-nums">
                     {formatInIst(r.started_at, "d MMM yyyy, hh:mm:ss a")}
                   </div>
-                  <div className="text-xs text-ink-500 mt-0.5" title={parseApiUtc(r.started_at).toISOString()}>
+                  <div
+                    className="text-xs text-ink-500 mt-0.5"
+                    title={parseApiUtc(r.started_at).toISOString()}
+                  >
                     {distanceFromApiUtc(r.started_at)}
                   </div>
                 </td>
@@ -59,16 +78,23 @@ export function RunsPage() {
                       {formatInIst(r.finished_at, "d MMM yyyy, hh:mm:ss a")}
                     </span>
                   ) : (
-                    <span className="text-amber-600">running…</span>
+                    <span className="text-accent-600 inline-flex items-center gap-1.5">
+                      <span className="inline-block h-1.5 w-1.5 rounded-full bg-accent-500 animate-pulse" />
+                      running
+                    </span>
                   )}
                 </td>
-                <td className="p-3 font-mono text-xs">#{r.source_id}</td>
+                <td className="p-3 font-mono text-xs text-ink-600">
+                  #{r.source_id}
+                </td>
                 <td className="p-3 text-right tabular-nums">{r.items_seen}</td>
                 <td className="p-3 text-right tabular-nums text-emerald-700">
                   {r.items_new || "—"}
                 </td>
-                <td className="p-3 text-right tabular-nums">{r.items_changed || "—"}</td>
-                <td className="p-3 text-right tabular-nums font-semibold">
+                <td className="p-3 text-right tabular-nums">
+                  {r.items_changed || "—"}
+                </td>
+                <td className="p-3 text-right tabular-nums font-semibold text-ink-900">
                   {r.signals_created || "—"}
                 </td>
                 <td className="p-3">
@@ -77,14 +103,16 @@ export function RunsPage() {
                       r.status === "ok"
                         ? "chip bg-emerald-50 text-emerald-700 border-emerald-200"
                         : r.status === "error"
-                        ? "chip bg-rose-50 text-rose-700 border-rose-200"
-                        : "chip"
+                          ? "chip bg-rose-50 text-rose-700 border-rose-200"
+                          : "chip"
                     }
                   >
                     {r.status}
                   </span>
                   {r.error && (
-                    <div className="text-xs text-rose-600 mt-1 line-clamp-1">{r.error}</div>
+                    <div className="text-xs text-rose-600 mt-1 line-clamp-1">
+                      {r.error}
+                    </div>
                   )}
                 </td>
               </tr>

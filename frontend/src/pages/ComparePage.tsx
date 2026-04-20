@@ -6,6 +6,7 @@ import { api, type CompareBrandRow, type CompareSku } from "../api";
 import { formatPrice } from "../formatPrice";
 import { PriceBandLadder } from "../components/PriceBandLadder";
 import { AIExplainCard } from "../components/AIExplainCard";
+import { PageHero } from "../components/PageHero";
 
 function SkuCard({ sku, currency }: { sku: CompareSku; currency: string | null }) {
   const cur = sku.currency || currency || "INR";
@@ -15,7 +16,7 @@ function SkuCard({ sku, currency }: { sku: CompareSku; currency: string | null }
       href={sku.url ?? "#"}
       target="_blank"
       rel="noreferrer"
-      className="block border border-ink-200 rounded-lg overflow-hidden hover:border-ink-400 hover:shadow-sm transition bg-white w-40 shrink-0"
+      className="block border border-ink-200 rounded-xl overflow-hidden hover:border-blush-300 hover:shadow-sm transition bg-white/90 backdrop-blur w-40 shrink-0"
     >
       <div className="aspect-square bg-ink-100 overflow-hidden">
         {sku.image_url ? (
@@ -54,16 +55,23 @@ function BrandCard({
   const cheaper = showDelta && (delta as number) < 0;
 
   return (
-    <div className={`card p-4 space-y-3 ${row.is_anchor ? "border-amber-300 bg-amber-50/40" : ""}`}>
+    <div
+      className={`card p-4 space-y-3 ${
+        row.is_anchor
+          ? "border-blush-300 bg-gradient-to-br from-blush-50/70 to-cream-50/50"
+          : ""
+      }`}
+    >
       <div className="flex items-start justify-between gap-3">
         <div>
-          <h3 className="font-semibold text-ink-900 flex items-center gap-2">
-            <Link to={`/competitors/${row.slug}`} className="hover:underline">
+          <h3 className="font-display text-base font-semibold text-ink-900 flex items-center gap-2">
+            <Link
+              to={`/competitors/${row.slug}`}
+              className="hover:text-blush-700 transition"
+            >
               {row.name}
             </Link>
-            {row.is_anchor && (
-              <span className="chip-accent text-[10px] uppercase tracking-wide">Anchor</span>
-            )}
+            {row.is_anchor && <span className="chip-accent">You</span>}
           </h3>
           <p className="text-xs text-ink-500 mt-0.5">
             {row.sku_count} SKU{row.sku_count === 1 ? "" : "s"} in scope ·{" "}
@@ -75,12 +83,12 @@ function BrandCard({
             className={`text-right text-xs font-semibold ${
               cheaper ? "text-emerald-700" : "text-rose-700"
             }`}
-            title="Median price vs anchor median"
+            title="Median price vs your median"
           >
             <div className="inline-flex items-center gap-1">
               {cheaper ? <ArrowDownNarrowWide size={14} /> : <ArrowUpNarrowWide size={14} />}
               {(delta as number) > 0 ? "+" : ""}
-              {delta}% vs anchor
+              {delta}% vs you
             </div>
           </div>
         )}
@@ -216,14 +224,22 @@ export function ComparePage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Compare</h1>
-        <p className="text-ink-500 mt-1 text-sm max-w-3xl">
-          Pick a category or type a keyword (e.g. <em>vitamin c serum</em>) to compare every brand on
-          the same shelf — price band, cheapest / priciest SKUs, discount intensity, and how they sit
-          versus your anchor.
-        </p>
-      </div>
+      <PageHero
+        eyebrow="Shelf compare"
+        theme="plum"
+        title={
+          <>
+            Every brand, on the <span className="gradient-text">same shelf</span>
+          </>
+        }
+        subtitle={
+          <>
+            Pick a category or type a keyword (say <em>vitamin c serum</em>) to
+            compare price bands, discount intensity, and the cheapest and
+            priciest SKUs — side by side with your brand.
+          </>
+        }
+      />
 
       {/* picker */}
       <div className="card p-4 space-y-4">
@@ -289,7 +305,9 @@ export function ComparePage() {
         </div>
 
         <div>
-          <div className="text-xs font-medium text-ink-600 mb-1">Categories (product_type)</div>
+          <div className="text-xs font-medium text-ink-600 mb-1 uppercase tracking-[0.14em]">
+            Categories
+          </div>
           <div className="flex flex-wrap gap-1.5">
             <button
               className={`chip ${category == null ? "bg-ink-900 text-white" : ""}`}
@@ -337,9 +355,13 @@ export function ComparePage() {
         )}
       </div>
 
-      {q.isLoading && <p className="text-sm text-ink-500">Loading comparison…</p>}
+      {q.isLoading && (
+        <p className="text-sm text-ink-500">Comparing the shelf…</p>
+      )}
       {q.isError && (
-        <p className="text-sm text-rose-600">Could not load comparison. Is the API running?</p>
+        <p className="text-sm text-rose-600">
+          We couldn't load the comparison right now. Please try again in a moment.
+        </p>
       )}
 
       {data && data.scope.in_scope_total === 0 && (
@@ -350,25 +372,26 @@ export function ComparePage() {
 
       {data && data.scope.in_scope_total > 0 && (
         <>
-          {/* Price band ladder — the centrepiece chart */}
-          <div className="card p-4">
-            <div className="flex items-baseline justify-between mb-1">
-              <h2 className="font-semibold">
+          <div className="card p-5">
+            <div className="flex items-baseline justify-between mb-1 flex-wrap gap-2">
+              <h2 className="font-display text-lg font-semibold text-ink-900">
                 Price ladder
                 {category ? ` · ${category}` : ""}
                 {keyword ? ` · "${keyword}"` : ""}
               </h2>
               {data.anchor_median_price != null && (
                 <span className="text-xs text-ink-500">
-                  Anchor median: <strong className="text-amber-700">
+                  Your median:{" "}
+                  <strong className="text-blush-700">
                     {formatPrice(data.anchor_median_price, fallbackCurrency)}
                   </strong>
                 </span>
               )}
             </div>
             <p className="text-xs text-ink-500 mb-3">
-              Box = p25 → p75 of latest listed price. Dot = median. Whiskers = min / max in scope.
-              Dashed orange line = anchor median for reference.
+              The box spans p25 → p75; the dot is the median; the whiskers are
+              min and max in scope. The dashed rose line is your median for
+              reference.
             </p>
             <PriceBandLadder
               rows={sortedBrands}
@@ -400,11 +423,13 @@ export function ComparePage() {
             ))}
           </div>
 
-          {/* Combined ranked SKU table — every priced SKU in scope across all brands */}
-          <div className="card p-4">
-            <h2 className="font-semibold mb-1">All SKUs in scope, cheapest first</h2>
+          <div className="card p-5">
+            <h2 className="font-display text-lg font-semibold mb-1 text-ink-900">
+              Every SKU in scope, cheapest first
+            </h2>
             <p className="text-xs text-ink-500 mb-3">
-              Combined view across every brand — pricing transparency for buyers.
+              A combined view across every brand — full pricing transparency
+              for buyers.
             </p>
             <CombinedSkuTable rows={sortedBrands} fallbackCurrency={fallbackCurrency} />
           </div>

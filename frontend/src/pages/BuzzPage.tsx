@@ -5,8 +5,6 @@ import {
   ExternalLink,
   Globe2,
   Headphones,
-  Heart,
-  Instagram,
   MessageSquare,
   Newspaper,
   ThumbsUp,
@@ -16,14 +14,14 @@ import { useEffect, useMemo, useState } from "react";
 import { api, type SocialMention } from "../api";
 import { Pager } from "../components/Pager";
 import { AIExplainCard } from "../components/AIExplainCard";
+import { PageHero } from "../components/PageHero";
 
 const PLATFORMS = [
-  { id: "", label: "All platforms" },
+  { id: "", label: "All channels" },
   { id: "youtube", label: "YouTube" },
   { id: "news", label: "Google News" },
   { id: "news_bing", label: "Bing News" },
   { id: "podcast", label: "Podcasts" },
-  { id: "instagram", label: "Instagram" },
 ];
 
 const SORT_OPTIONS = [
@@ -32,12 +30,22 @@ const SORT_OPTIONS = [
   { id: "score", label: "Top engagement" },
 ];
 
+const PLATFORM_LABEL: Record<string, string> = {
+  youtube: "YouTube",
+  news: "Google News",
+  news_bing: "Bing News",
+  podcast: "Podcasts",
+};
+
 function platformIcon(platform: string) {
-  if (platform === "youtube") return <Youtube size={14} className="text-rose-600" />;
-  if (platform === "news") return <Newspaper size={14} className="text-sky-600" />;
-  if (platform === "news_bing") return <Globe2 size={14} className="text-indigo-600" />;
-  if (platform === "podcast") return <Headphones size={14} className="text-violet-600" />;
-  if (platform === "instagram") return <Instagram size={14} className="text-pink-600" />;
+  if (platform === "youtube")
+    return <Youtube size={14} className="text-rose-600" />;
+  if (platform === "news")
+    return <Newspaper size={14} className="text-sky-600" />;
+  if (platform === "news_bing")
+    return <Globe2 size={14} className="text-indigo-600" />;
+  if (platform === "podcast")
+    return <Headphones size={14} className="text-violet-600" />;
   return null;
 }
 
@@ -54,36 +62,47 @@ function MentionCard({ m }: { m: SocialMention }) {
       href={m.url}
       target="_blank"
       rel="noreferrer"
-      className="card p-3 flex gap-3 hover:border-ink-400 transition-colors group"
+      className="card p-3 flex gap-3 hover:shadow-lift hover:-translate-y-[1px] transition-all group"
     >
       {m.thumbnail_url ? (
         <img
           src={m.thumbnail_url}
           alt=""
-          className="w-32 h-20 object-cover rounded-md bg-ink-100 shrink-0"
+          className="w-32 h-20 object-cover rounded-lg bg-ink-100 shrink-0"
           loading="lazy"
         />
       ) : (
-        <div className="w-32 h-20 rounded-md bg-ink-100 shrink-0 grid place-items-center text-ink-400">
+        <div className="w-32 h-20 rounded-lg bg-gradient-to-br from-blush-50 to-cream-50 border border-white/60 shrink-0 grid place-items-center text-ink-400">
           {platformIcon(m.platform)}
         </div>
       )}
       <div className="min-w-0 flex-1">
-        <div className="flex items-center gap-2 text-xs text-ink-500">
+        <div className="flex items-center gap-2 text-[11px] text-ink-500 uppercase tracking-[0.12em]">
           {platformIcon(m.platform)}
-          <span className="font-medium uppercase tracking-wide">{m.platform}</span>
+          <span className="font-semibold">
+            {PLATFORM_LABEL[m.platform] ?? m.platform}
+          </span>
           <span className="text-ink-300">·</span>
-          <span>{m.competitor_name}</span>
+          <span className="text-ink-700 normal-case tracking-normal font-medium">
+            {m.competitor_name}
+          </span>
           {m.published_at && (
             <>
               <span className="text-ink-300">·</span>
-              <span>{formatDistanceToNow(new Date(m.published_at), { addSuffix: true })}</span>
+              <span className="text-ink-500 normal-case tracking-normal">
+                {formatDistanceToNow(new Date(m.published_at), {
+                  addSuffix: true,
+                })}
+              </span>
             </>
           )}
         </div>
-        <div className="font-medium text-sm mt-1 line-clamp-2 group-hover:underline inline-flex items-start gap-1">
+        <div className="font-medium text-sm mt-1 line-clamp-2 group-hover:text-blush-700 transition inline-flex items-start gap-1">
           {m.title}
-          <ExternalLink size={12} className="opacity-0 group-hover:opacity-60 mt-1 shrink-0" />
+          <ExternalLink
+            size={12}
+            className="opacity-0 group-hover:opacity-60 mt-1 shrink-0"
+          />
         </div>
         {m.author && (
           <div className="text-xs text-ink-600 mt-1">
@@ -93,7 +112,7 @@ function MentionCard({ m }: { m: SocialMention }) {
             )}
           </div>
         )}
-        <div className="flex items-center gap-3 mt-1 text-xs text-ink-500 tabular-nums">
+        <div className="flex items-center gap-3 mt-1.5 text-xs text-ink-500 tabular-nums">
           {m.metric_views != null && (
             <span className="inline-flex items-center gap-1">
               <Eye size={12} /> {compactNumber(m.metric_views)}
@@ -101,8 +120,7 @@ function MentionCard({ m }: { m: SocialMention }) {
           )}
           {m.metric_score != null && (
             <span className="inline-flex items-center gap-1">
-              {m.platform === "instagram" ? <Heart size={12} /> : <ThumbsUp size={12} />}{" "}
-              {compactNumber(m.metric_score)}
+              <ThumbsUp size={12} /> {compactNumber(m.metric_score)}
             </span>
           )}
           {m.metric_comments != null && (
@@ -124,7 +142,7 @@ export function BuzzPage() {
   const [limit, setLimit] = useState(25);
   const [offset, setOffset] = useState(0);
   const [creatorPlatform, setCreatorPlatform] = useState<
-    "youtube" | "news" | "news_bing" | "podcast" | "instagram"
+    "youtube" | "news" | "news_bing" | "podcast"
   >("youtube");
 
   useEffect(() => {
@@ -182,11 +200,14 @@ export function BuzzPage() {
       news: r.platforms.news?.mentions ?? 0,
       news_bing: r.platforms.news_bing?.mentions ?? 0,
       podcast: r.platforms.podcast?.mentions ?? 0,
-      instagram: r.platforms.instagram?.mentions ?? 0,
     }));
     return {
       window_days: windowDays,
-      filters: { competitor: competitor || null, platform: platform || null, sort },
+      filters: {
+        competitor: competitor || null,
+        platform: platform || null,
+        sort,
+      },
       volume_by_brand: volumeByBrand,
       sample_mentions: items.slice(0, 15).map((m) => ({
         platform: m.platform,
@@ -202,80 +223,109 @@ export function BuzzPage() {
         views: c.total_views,
       })),
     };
-  }, [summary.data, windowDays, competitor, platform, sort, items, creators.data]);
+  }, [
+    summary.data,
+    windowDays,
+    competitor,
+    platform,
+    sort,
+    items,
+    creators.data,
+  ]);
 
   return (
     <div className="space-y-6">
-      <div className="flex items-end justify-between flex-wrap gap-4">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Buzz · who's talking about each brand</h1>
-          <p className="text-ink-500 mt-1 text-sm max-w-3xl">
-            Listening-style stack: YouTube (Data API), Google News + Bing News (two RSS news indexes),
-            Apple Podcasts search, and optionally Instagram via Meta's Graph API (hashtag media —
-            no HTML scraping; needs tokens in ``backend/.env``). Use the leaderboard to see which
-            channels and outlets repeat per brand.
-          </p>
-        </div>
-        <div className="flex items-center gap-1 text-sm">
-          {[30, 90, 180, 365].map((d) => (
-            <button
-              key={d}
-              onClick={() => setWindowDays(d)}
-              className={`btn ${windowDays === d ? "bg-ink-900 text-white" : "btn-ghost"}`}
-            >
-              {d}d
-            </button>
-          ))}
-        </div>
-      </div>
+      <PageHero
+        eyebrow="Earned media"
+        theme="rose"
+        title={
+          <>
+            Who's actually <span className="gradient-text">talking</span> about
+            each brand
+          </>
+        }
+        subtitle={
+          <>
+            Listening across YouTube, Google News, Bing News and podcasts — so
+            you can see which channels and creators repeat per brand, and where
+            to place the next collab.
+          </>
+        }
+        actions={
+          <div className="flex items-center gap-1 p-1 rounded-full bg-white/70 border border-white/70 shadow-sm">
+            {[30, 90, 180, 365].map((d) => (
+              <button
+                key={d}
+                onClick={() => setWindowDays(d)}
+                className={`px-3 py-1.5 rounded-full text-xs font-semibold transition ${
+                  windowDays === d
+                    ? "bg-ink-900 text-white shadow-sm"
+                    : "text-ink-600 hover:text-ink-900"
+                }`}
+              >
+                {d}d
+              </button>
+            ))}
+          </div>
+        }
+      />
 
-      {/* Per-brand × per-platform mention totals */}
-      <div className="card p-4 overflow-x-auto">
-        <h2 className="font-semibold mb-3">Mention volume (last {windowDays}d)</h2>
+      <div className="card p-5 overflow-x-auto">
+        <h2 className="font-display text-lg font-semibold mb-3 text-ink-900">
+          Mention volume — last {windowDays} days
+        </h2>
         {summaryRows.length === 0 && (
           <p className="text-sm text-ink-500">
-            No social mentions yet — run ingestion. For YouTube set <code>YOUTUBE_API_KEY</code>; for
-            Instagram set <code>INSTAGRAM_ACCESS_TOKEN</code> and <code>INSTAGRAM_GRAPH_USER_ID</code>{" "}
-            (see <code>backend/.env.example</code>).
+            No mentions in this window yet. Tap{" "}
+            <span className="font-semibold text-ink-900">Refresh data</span> at
+            the top to pull the latest.
           </p>
         )}
         {summaryRows.length > 0 && (
           <table className="w-full text-sm">
-            <thead className="text-xs text-ink-500 border-b border-ink-200">
+            <thead className="text-[11px] text-ink-500 border-b border-ink-200 uppercase tracking-[0.12em]">
               <tr>
                 <th className="py-2 pr-3 text-left">Brand</th>
                 <th className="py-2 pr-3 text-right">YouTube</th>
-                <th className="py-2 pr-3 text-right">G News</th>
+                <th className="py-2 pr-3 text-right">Google News</th>
                 <th className="py-2 pr-3 text-right">Bing</th>
                 <th className="py-2 pr-3 text-right">Podcast</th>
-                <th className="py-2 pr-3 text-right">IG</th>
                 <th className="py-2 pr-3 text-right">Total</th>
-                <th className="py-2 text-right">YT views</th>
+                <th className="py-2 text-right">YouTube views</th>
               </tr>
             </thead>
             <tbody>
               {summaryRows.map((r) => (
-                <tr key={r.slug} className="border-b border-ink-100">
-                  <td className="py-2 pr-3 font-medium">
-                    {r.is_anchor ? `${r.name} ★` : r.name}
+                <tr
+                  key={r.slug}
+                  className="border-b border-ink-100 hover:bg-white/60"
+                >
+                  <td className="py-2.5 pr-3 font-medium">
+                    {r.is_anchor ? (
+                      <span className="inline-flex items-center gap-1.5">
+                        {r.name}
+                        <span className="chip-accent">You</span>
+                      </span>
+                    ) : (
+                      r.name
+                    )}
                   </td>
-                  <td className="py-2 pr-3 text-right tabular-nums">
+                  <td className="py-2.5 pr-3 text-right tabular-nums">
                     {r.platforms.youtube?.mentions ?? 0}
                   </td>
-                  <td className="py-2 pr-3 text-right tabular-nums">
+                  <td className="py-2.5 pr-3 text-right tabular-nums">
                     {r.platforms.news?.mentions ?? 0}
                   </td>
-                  <td className="py-2 pr-3 text-right tabular-nums">
+                  <td className="py-2.5 pr-3 text-right tabular-nums">
                     {r.platforms.news_bing?.mentions ?? 0}
                   </td>
-                  <td className="py-2 pr-3 text-right tabular-nums">
+                  <td className="py-2.5 pr-3 text-right tabular-nums">
                     {r.platforms.podcast?.mentions ?? 0}
                   </td>
-                  <td className="py-2 pr-3 text-right tabular-nums">
-                    {r.platforms.instagram?.mentions ?? 0}
+                  <td className="py-2.5 pr-3 text-right tabular-nums font-semibold text-ink-900">
+                    {r.total}
                   </td>
-                  <td className="py-2 pr-3 text-right tabular-nums font-semibold">{r.total}</td>
-                  <td className="py-2 text-right tabular-nums text-ink-600">
+                  <td className="py-2.5 text-right tabular-nums text-ink-600">
                     {compactNumber(r.platforms.youtube?.views ?? null)}
                   </td>
                 </tr>
@@ -289,15 +339,14 @@ export function BuzzPage() {
         <AIExplainCard
           view="social_buzz"
           payload={buzzAiPayload}
-          title="AI buzz read"
-          subtitle={`Listening summary for the last ${windowDays} days (uses volume table + current feed + creator leaderboard).`}
+          title="Buzz read"
+          subtitle={`A listening summary for the last ${windowDays} days — volume, channels, and creators worth a second look.`}
         />
       )}
 
-      {/* Top creators / publications */}
-      <div className="card p-4">
+      <div className="card p-5">
         <div className="flex items-center justify-between flex-wrap gap-2 mb-3">
-          <h2 className="font-semibold">
+          <h2 className="font-display text-lg font-semibold text-ink-900">
             Top{" "}
             {creatorPlatform === "youtube"
               ? "YouTube channels"
@@ -305,31 +354,44 @@ export function BuzzPage() {
                 ? "podcast shows"
                 : creatorPlatform === "news_bing"
                   ? "Bing news outlets"
-                  : creatorPlatform === "instagram"
-                    ? "Instagram accounts"
-                    : "Google News outlets"}{" "}
+                  : "Google News outlets"}{" "}
             {competitor ? `for ${competitor}` : "across all brands"}
           </h2>
           <div className="flex items-center gap-1 text-xs flex-wrap">
-            {(["youtube", "news", "news_bing", "podcast", "instagram"] as const).map((p) => (
-              <button
-                key={p}
-                onClick={() => setCreatorPlatform(p)}
-                className={`btn text-xs ${creatorPlatform === p ? "bg-ink-900 text-white" : "btn-ghost"}`}
-              >
-                {p === "news" ? "g news" : p === "instagram" ? "IG" : p.replace("_", " ")}
-              </button>
-            ))}
+            {(["youtube", "news", "news_bing", "podcast"] as const).map(
+              (p) => (
+                <button
+                  key={p}
+                  onClick={() => setCreatorPlatform(p)}
+                  className={`px-3 py-1.5 rounded-full text-xs font-semibold transition ${
+                    creatorPlatform === p
+                      ? "bg-ink-900 text-white shadow-sm"
+                      : "bg-white/60 text-ink-600 hover:text-ink-900 border border-ink-200"
+                  }`}
+                >
+                  {PLATFORM_LABEL[p]}
+                </button>
+              ),
+            )}
           </div>
         </div>
-        {creators.isLoading && <p className="text-xs text-ink-500">Loading…</p>}
+        {creators.isLoading && (
+          <p className="text-xs text-ink-500">Loading…</p>
+        )}
         {!creators.isLoading && (creators.data?.length ?? 0) === 0 && (
-          <p className="text-xs text-ink-500">No data for this platform / brand yet.</p>
+          <p className="text-xs text-ink-500">
+            No data for this channel / brand yet.
+          </p>
         )}
         <ul className="divide-y divide-ink-100">
           {creators.data?.map((c, i) => (
-            <li key={`${c.competitor_slug}-${c.author}-${i}`} className="py-2 flex items-center gap-3">
-              <span className="text-ink-400 text-xs w-5 tabular-nums">{i + 1}</span>
+            <li
+              key={`${c.competitor_slug}-${c.author}-${i}`}
+              className="py-2.5 flex items-center gap-3"
+            >
+              <span className="text-ink-400 text-xs w-6 tabular-nums">
+                {i + 1}
+              </span>
               <div className="min-w-0 flex-1">
                 <div className="font-medium text-sm truncate">
                   {c.author_url ? (
@@ -337,7 +399,7 @@ export function BuzzPage() {
                       href={c.author_url}
                       target="_blank"
                       rel="noreferrer"
-                      className="hover:underline inline-flex items-center gap-1"
+                      className="hover:text-blush-700 inline-flex items-center gap-1"
                     >
                       {c.author} <ExternalLink size={11} />
                     </a>
@@ -346,16 +408,16 @@ export function BuzzPage() {
                   )}
                 </div>
                 <div className="text-xs text-ink-500">
-                  {c.competitor_name} · {c.author_handle ?? c.platform}
+                  {c.competitor_name} ·{" "}
+                  {c.author_handle ?? PLATFORM_LABEL[c.platform] ?? c.platform}
                 </div>
               </div>
               <div className="text-xs tabular-nums text-ink-700 text-right shrink-0">
                 <div>{c.mention_count} mentions</div>
                 {(c.total_views ?? 0) > 0 && (
-                  <div className="text-ink-500">{compactNumber(c.total_views)} views</div>
-                )}
-                {(c.total_score ?? 0) > 0 && c.platform === "instagram" && (
-                  <div className="text-ink-500">{compactNumber(c.total_score)} likes</div>
+                  <div className="text-ink-500">
+                    {compactNumber(c.total_views)} views
+                  </div>
                 )}
               </div>
             </li>
@@ -363,10 +425,9 @@ export function BuzzPage() {
         </ul>
       </div>
 
-      {/* Mentions feed */}
       <div className="card p-3 flex flex-wrap gap-2 items-center">
         <select
-          className="text-sm border border-ink-200 rounded-md px-2 py-1 bg-white"
+          className="text-sm border border-ink-200 rounded-full px-3 py-1.5 bg-white/80"
           value={competitor}
           onChange={(e) => setCompetitor(e.target.value)}
         >
@@ -378,7 +439,7 @@ export function BuzzPage() {
           ))}
         </select>
         <select
-          className="text-sm border border-ink-200 rounded-md px-2 py-1 bg-white"
+          className="text-sm border border-ink-200 rounded-full px-3 py-1.5 bg-white/80"
           value={platform}
           onChange={(e) => setPlatform(e.target.value)}
         >
@@ -389,7 +450,7 @@ export function BuzzPage() {
           ))}
         </select>
         <select
-          className="text-sm border border-ink-200 rounded-md px-2 py-1 bg-white"
+          className="text-sm border border-ink-200 rounded-full px-3 py-1.5 bg-white/80"
           value={sort}
           onChange={(e) => setSort(e.target.value as any)}
         >
@@ -401,13 +462,14 @@ export function BuzzPage() {
         </select>
       </div>
 
-      <div className="space-y-2">
-        {mentions.isLoading && <p className="text-sm text-ink-500">Loading…</p>}
+      <div className="space-y-2.5">
+        {mentions.isLoading && (
+          <p className="text-sm text-ink-500">Loading…</p>
+        )}
         {!mentions.isLoading && items.length === 0 && (
           <div className="card p-6 text-sm text-ink-600">
-            No mentions in this window. Trigger an ingestion run. Optional:{" "}
-            <code>YOUTUBE_API_KEY</code>, <code>INSTAGRAM_ACCESS_TOKEN</code> +{" "}
-            <code>INSTAGRAM_GRAPH_USER_ID</code> for Instagram (Meta Graph API).
+            No mentions match these filters. Try widening the window or picking
+            a different channel.
           </div>
         )}
         {items.map((m) => (

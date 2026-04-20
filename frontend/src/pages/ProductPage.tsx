@@ -1,6 +1,11 @@
 import { useParams, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowDownNarrowWide, ArrowUpNarrowWide, ExternalLink, Target } from "lucide-react";
+import {
+  ArrowDownNarrowWide,
+  ArrowUpNarrowWide,
+  ExternalLink,
+  Target,
+} from "lucide-react";
 import { format } from "date-fns";
 import { useMemo } from "react";
 import { api, type PeerCard } from "../api";
@@ -135,31 +140,44 @@ export function ProductPage() {
     };
   }, [p, peers]);
 
-  if (q.isLoading) return <div className="text-sm text-ink-500">Loading…</div>;
+  if (q.isLoading)
+    return <div className="text-sm text-ink-500">Loading the product…</div>;
   if (!p) return <div>Not found.</div>;
 
   return (
     <div className="space-y-6">
-      <div className="text-xs text-ink-500">
+      <div className="text-xs text-ink-500 uppercase tracking-[0.14em] font-semibold">
         {p.competitor_slug ? (
-          <Link to={`/competitors/${p.competitor_slug}`} className="hover:underline">
+          <Link
+            to={`/competitors/${p.competitor_slug}`}
+            className="hover:text-blush-700 transition"
+          >
             {p.competitor_name}
           </Link>
         ) : (
           <span>{p.competitor_name}</span>
         )}{" "}
-        · {p.product_type}
+        <span className="text-ink-300">·</span>{" "}
+        <span className="text-ink-500 normal-case tracking-normal font-normal">
+          {p.product_type}
+        </span>
       </div>
       <div className="grid md:grid-cols-2 gap-6">
         <div className="card overflow-hidden">
-          <div className="aspect-square bg-ink-100">
+          <div className="aspect-square bg-gradient-to-br from-cream-100 to-blush-50">
             {p.image_url ? (
-              <img src={p.image_url} alt={p.title} className="w-full h-full object-cover" />
+              <img
+                src={p.image_url}
+                alt={p.title}
+                className="w-full h-full object-cover"
+              />
             ) : null}
           </div>
         </div>
         <div className="space-y-3">
-          <h1 className="text-2xl font-semibold tracking-tight">{p.title}</h1>
+          <h1 className="font-display text-3xl font-semibold tracking-tight text-ink-900">
+            {p.title}
+          </h1>
           <div className="text-lg font-medium tabular-nums">
             {p.latest_price_min != null ? formatPrice(p.latest_price_min, p.currency) : "—"}
             {p.latest_price_max != null &&
@@ -202,10 +220,12 @@ export function ProductPage() {
       </div>
 
       {peers && (peers.cheapest || peers.closest || peers.most_expensive) && (
-        <div className="card p-4 space-y-3">
+        <div className="card p-5 space-y-3">
           <div className="flex items-baseline justify-between flex-wrap gap-2">
             <div>
-              <h2 className="font-semibold">Comparable at peers</h2>
+              <h2 className="font-display text-lg font-semibold text-ink-900">
+                Comparable across peers
+              </h2>
               <p className="text-xs text-ink-500">
                 {peers.category ? (
                   <>
@@ -288,13 +308,17 @@ export function ProductPage() {
         />
       )}
 
-      <div className="card p-4">
-        <h2 className="font-semibold mb-2">Price history</h2>
+      <div className="card p-5">
+        <h2 className="font-display text-lg font-semibold mb-2 text-ink-900">
+          Price history
+        </h2>
         <PriceHistoryChart snapshots={p.snapshots ?? []} currency={p.currency} />
       </div>
 
-      <div className="card p-4">
-        <h2 className="font-semibold mb-2">Snapshots</h2>
+      <div className="card p-5">
+        <h2 className="font-display text-lg font-semibold mb-2 text-ink-900">
+          Snapshots
+        </h2>
         <table className="w-full text-sm">
           <thead className="text-xs text-ink-500 text-left">
             <tr>

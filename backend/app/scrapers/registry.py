@@ -12,6 +12,7 @@ from .bing_news_rss import BingNewsRssSource
 from .instagram_graph_hashtag import InstagramGraphHashtagSource
 from .itunes_podcast import ItunesPodcastSource
 from .news_rss import NewsRssSource
+from .reddit_search_rss import RedditSearchRssSource
 from .shopify_blog import ShopifyBlogAtomSource
 from .shopify_products import ShopifyProductsSource
 from .youtube_search import YouTubeSearchSource
@@ -30,6 +31,7 @@ _REGISTRY: dict[str, type[BaseSource]] = {
     "bing_news_rss": BingNewsRssSource,
     "itunes_podcast": ItunesPodcastSource,
     "instagram_graph_hashtag": InstagramGraphHashtagSource,
+    "reddit_search_rss": RedditSearchRssSource,
 }
 
 

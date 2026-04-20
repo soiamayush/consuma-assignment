@@ -19,9 +19,10 @@ import { formatPrice } from "../formatPrice";
 import { PriceBandLadder } from "../components/PriceBandLadder";
 import { InsightStrip } from "../components/InsightStrip";
 import { AIExplainCard } from "../components/AIExplainCard";
+import { PageHero } from "../components/PageHero";
 
-const ANCHOR_COLOR = "#d97706";
-const PEER_COLOR = "#374151";
+const ANCHOR_COLOR = "#bf3f5c";
+const PEER_COLOR = "#4b5563";
 
 export function AnalyticsPage() {
   const [windowDays, setWindowDays] = useState(14);
@@ -134,27 +135,40 @@ export function AnalyticsPage() {
 
   return (
     <div className="space-y-8">
-      <div className="flex items-end justify-between flex-wrap gap-4">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Analytics · anchor vs peers</h1>
-          <p className="text-ink-500 mt-1 text-sm max-w-3xl">
-            Built from live Shopify JSON where public (or a committed snapshot for MyGlamm), plus rule-based
-            actives from titles/tags. Price percentiles ignore ₹0 gift SKUs; compare medians only within the
-            same currency when running mixed live catalogs.
-          </p>
-        </div>
-        <div className="flex items-center gap-1 text-sm">
-          {[7, 14, 30].map((d) => (
-            <button
-              key={d}
-              onClick={() => setWindowDays(d)}
-              className={`btn ${windowDays === d ? "bg-ink-900 text-white" : "btn-ghost"}`}
-            >
-              {d}d
-            </button>
-          ))}
-        </div>
-      </div>
+      <PageHero
+        eyebrow="Differentiation"
+        theme="gold"
+        title={
+          <>
+            Where you <span className="gradient-text">stand</span> on the
+            shelf
+          </>
+        }
+        subtitle={
+          <>
+            A cross-brand read on price bands, discount intensity, launch
+            cadence, stock pressure and hero ingredients. Spot where peers are
+            crowding and where you have room to own a theme.
+          </>
+        }
+        actions={
+          <div className="flex items-center gap-1 p-1 rounded-full bg-white/70 border border-white/70 shadow-sm">
+            {[7, 14, 30].map((d) => (
+              <button
+                key={d}
+                onClick={() => setWindowDays(d)}
+                className={`px-3 py-1.5 rounded-full text-xs font-semibold transition ${
+                  windowDays === d
+                    ? "bg-ink-900 text-white shadow-sm"
+                    : "text-ink-600 hover:text-ink-900"
+                }`}
+              >
+                {d}d
+              </button>
+            ))}
+          </div>
+        }
+      />
 
       <InsightStrip
         insights={insightsQ.data?.insights ?? []}
@@ -172,26 +186,36 @@ export function AnalyticsPage() {
         />
       )}
 
-      {q.isLoading && <p className="text-sm text-ink-500">Loading analytics…</p>}
+      {q.isLoading && (
+        <p className="text-sm text-ink-500">Gathering the numbers…</p>
+      )}
       {q.isError && (
-        <p className="text-sm text-rose-600">Could not load analytics. Is the API running?</p>
+        <p className="text-sm text-rose-600">
+          We couldn't load analytics right now. Please try again in a moment.
+        </p>
       )}
 
       {data && (
         <>
-          <div className="card p-4">
-            <h2 className="font-semibold text-lg mb-2">Executive read</h2>
-            <p className="text-sm text-ink-700">{data.narrative}</p>
+          <div className="card p-5">
+            <h2 className="font-display text-xl font-semibold mb-2 text-ink-900">
+              Executive read
+            </h2>
+            <p className="text-sm text-ink-700 leading-relaxed">
+              {data.narrative}
+            </p>
             {data.anchor_name && (
               <p className="text-xs text-ink-500 mt-2">
-                Anchor: <strong>{data.anchor_name}</strong> ({data.anchor_slug})
+                Your brand: <strong>{data.anchor_name}</strong>
               </p>
             )}
           </div>
 
           {data.data_quality_notes && data.data_quality_notes.length > 0 && (
-            <div className="card p-4 border-ink-200">
-              <h3 className="font-semibold mb-2">Data quality &amp; sources</h3>
+            <div className="card p-5">
+              <h3 className="font-display text-base font-semibold mb-2 text-ink-900">
+                Data quality notes
+              </h3>
               <ul className="text-sm text-ink-600 list-disc pl-5 space-y-1">
                 {data.data_quality_notes.map((note, i) => (
                   <li key={i}>{note}</li>
@@ -201,12 +225,21 @@ export function AnalyticsPage() {
           )}
 
           <div className="grid md:grid-cols-2 gap-6">
-            <div className="card p-4">
-              <h3 className="font-semibold mb-1">Price band by brand (p25 → p75, median dot)</h3>
+            <div className="card p-5">
+              <h3 className="font-display text-base font-semibold mb-1 text-ink-900">
+                Price band by brand
+              </h3>
               <p className="text-xs text-ink-500 mb-3">
-                ★ = anchor. Dashed orange line = anchor median for direct comparison. Want a deeper
-                cut? Open <Link to="/compare" className="underline">Compare</Link> to slice by category
-                or keyword.
+                Box spans p25 → p75; dot marks the median. The dashed rose line
+                is your median — anyone to the left is cheaper than you, right
+                is pricier. Want to slice by category? Open{" "}
+                <Link
+                  to="/compare"
+                  className="underline font-medium text-ink-700 hover:text-blush-700"
+                >
+                  Compare
+                </Link>
+                .
               </p>
               <PriceBandLadder
                 rows={ladderRows}
@@ -215,9 +248,13 @@ export function AnalyticsPage() {
               />
             </div>
 
-            <div className="card p-4">
-              <h3 className="font-semibold mb-1">Signals in window (velocity)</h3>
-              <p className="text-xs text-ink-500 mb-3">Price moves, launches, stock flips, blog posts…</p>
+            <div className="card p-5">
+              <h3 className="font-display text-base font-semibold mb-1 text-ink-900">
+                Signals in window — velocity
+              </h3>
+              <p className="text-xs text-ink-500 mb-3">
+                Price moves, launches, stock flips, and editorial announcements.
+              </p>
               <div className="h-64">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={signalChartData} margin={{ bottom: 40 }}>
@@ -238,10 +275,12 @@ export function AnalyticsPage() {
 
           {data.discount_landscape && data.discount_landscape.length > 0 && (
             <div className="grid md:grid-cols-2 gap-6">
-              <div className="card p-4">
-                <h3 className="font-semibold mb-1">Discount intensity by brand</h3>
+              <div className="card p-5">
+                <h3 className="font-display text-base font-semibold mb-1 text-ink-900">
+                  Discount intensity by brand
+                </h3>
                 <p className="text-xs text-ink-500 mb-3">
-                  Share of catalog where compare-at &gt; live price (i.e. visibly on sale).
+                  Share of catalog visibly on sale (MSRP higher than live price).
                 </p>
                 <div className="h-64">
                   <ResponsiveContainer width="100%" height="100%">
@@ -305,11 +344,13 @@ export function AnalyticsPage() {
                 </div>
               </div>
 
-              <div className="card p-4">
-                <h3 className="font-semibold mb-1">Stock pressure (last {data.window_days}d)</h3>
+              <div className="card p-5">
+                <h3 className="font-display text-base font-semibold mb-1 text-ink-900">
+                  Stock pressure — last {data.window_days} days
+                </h3>
                 <p className="text-xs text-ink-500 mb-3">
-                  Out-of-stock vs back-in-stock signals. Net &gt; 0 = brand is selling through faster
-                  than restocking.
+                  Out-of-stock vs. back-in-stock flips. Net positive means a
+                  brand is selling through faster than it restocks.
                 </p>
                 <div className="h-64">
                   <ResponsiveContainer width="100%" height="100%">
@@ -342,11 +383,13 @@ export function AnalyticsPage() {
           )}
 
           {data.launches_per_week && data.launches_per_week.length > 0 && (
-            <div className="card p-4">
-              <h3 className="font-semibold mb-1">Launch cadence (PRODUCT_LAUNCH per ISO week, last 12 weeks)</h3>
+            <div className="card p-5">
+              <h3 className="font-display text-base font-semibold mb-1 text-ink-900">
+                Launch cadence — new SKUs per week, last 12 weeks
+              </h3>
               <p className="text-xs text-ink-500 mb-3">
-                Each line = one brand. A rising slope is portfolio expansion; a flat line near zero
-                is a quiet roadmap.
+                Each line is a brand. A rising slope is portfolio expansion; a
+                flat line near zero means a quiet roadmap.
               </p>
               <div className="h-72">
                 <ResponsiveContainer width="100%" height="100%">
@@ -389,10 +432,13 @@ export function AnalyticsPage() {
           )}
 
           {data.catalog_size_weekly && data.catalog_size_weekly.length > 0 && (
-            <div className="card p-4">
-              <h3 className="font-semibold mb-1">Catalog size by ISO week (last 12 weeks, cumulative)</h3>
+            <div className="card p-5">
+              <h3 className="font-display text-base font-semibold mb-1 text-ink-900">
+                Catalog size by week — last 12 weeks
+              </h3>
               <p className="text-xs text-ink-500 mb-3">
-                Active SKUs in catalog by week-end. Steepest slope = fastest portfolio expansion.
+                Active SKUs counted at week-end. Steepest slope wins the
+                portfolio-expansion race.
               </p>
               <div className="h-72">
                 <ResponsiveContainer width="100%" height="100%">
@@ -435,12 +481,14 @@ export function AnalyticsPage() {
           )}
 
           {data.anchor_whitespace && data.anchor_whitespace.length > 0 && (
-            <div className="card p-4 border-amber-200 bg-amber-50/30">
-              <h3 className="font-semibold mb-1">
-                Anchor white-space — actives 3+ peers ship that {data.anchor_name ?? "the anchor"} doesn't
+            <div className="rounded-2xl border border-blush-200 bg-gradient-to-br from-blush-50/70 to-cream-50/70 backdrop-blur-md p-5 shadow-glass">
+              <h3 className="font-display text-base font-semibold mb-1 text-ink-900">
+                White-space opportunities — ingredients 3+ peers ship that{" "}
+                {data.anchor_name ?? "you"} don't
               </h3>
               <p className="text-xs text-ink-500 mb-3">
-                Concrete portfolio gaps to consider for the next launch slate.
+                Concrete portfolio gaps worth considering for the next launch
+                slate.
               </p>
               <ul className="text-sm space-y-1">
                 {data.anchor_whitespace.map((r) => (
@@ -457,10 +505,13 @@ export function AnalyticsPage() {
           )}
 
           {data.top_price_moves && data.top_price_moves.length > 0 && (
-            <div className="card p-4">
-              <h3 className="font-semibold mb-1">Top price moves (last {data.window_days}d)</h3>
+            <div className="card p-5">
+              <h3 className="font-display text-base font-semibold mb-1 text-ink-900">
+                Top price moves — last {data.window_days} days
+              </h3>
               <p className="text-xs text-ink-500 mb-3">
-                Biggest absolute % swings. Drops in green, increases in red. Click a row to open the SKU.
+                Biggest absolute percent swings. Drops in green, increases in
+                rose. Click a row to open the SKU.
               </p>
               <div className="overflow-x-auto text-sm">
                 <table className="w-full border-collapse">
@@ -474,7 +525,7 @@ export function AnalyticsPage() {
                   </thead>
                   <tbody>
                     {data.top_price_moves.map((m) => (
-                      <tr key={m.signal_id} className="border-b border-ink-100 hover:bg-ink-50/50">
+                      <tr key={m.signal_id} className="border-b border-ink-100 hover:bg-white/60">
                         <td className="py-2 pr-3 text-ink-600">{m.brand_name ?? m.brand_slug}</td>
                         <td className="py-2 pr-3">
                           {m.product_id != null ? (
@@ -504,10 +555,12 @@ export function AnalyticsPage() {
             </div>
           )}
 
-          <div className="card p-4">
-            <h3 className="font-semibold mb-2">Price distribution (latest snapshot per SKU)</h3>
+          <div className="card p-5">
+            <h3 className="font-display text-base font-semibold mb-2 text-ink-900">
+              Price distribution — latest snapshot per SKU
+            </h3>
             <p className="text-xs text-ink-500 mb-3">
-              p25 / p75 use positive prices only (excludes free samples in catalog).
+              p25 / p75 use positive prices only (free samples excluded).
             </p>
             <div className="overflow-x-auto text-sm">
               <table className="w-full border-collapse">
@@ -544,10 +597,13 @@ export function AnalyticsPage() {
           </div>
 
           {data.active_cross_brand && data.active_cross_brand.length > 0 && (
-            <div className="card p-4">
-              <h3 className="font-semibold mb-1">Cross-brand active overlap</h3>
+            <div className="card p-5">
+              <h3 className="font-display text-base font-semibold mb-1 text-ink-900">
+                Cross-brand ingredient overlap
+              </h3>
               <p className="text-xs text-ink-500 mb-3">
-                How many brands mention the same hero ingredient in title/tags — crowded vs whitespace
+                How many brands mention the same hero ingredient in product
+                titles or tags — a quick read on crowded vs. white-space
                 themes.
               </p>
               <div className="overflow-x-auto text-sm">
@@ -575,10 +631,13 @@ export function AnalyticsPage() {
             </div>
           )}
 
-          <div className="card p-4">
-            <h3 className="font-semibold mb-1">Actives &amp; hero ingredients in catalog copy</h3>
+          <div className="card p-5">
+            <h3 className="font-display text-base font-semibold mb-1 text-ink-900">
+              Hero ingredients in catalog copy
+            </h3>
             <p className="text-xs text-ink-500 mb-3">
-              Rule-based scan of product titles + tags — portfolio differentiation vs peers.
+              A scan of product titles and tags — the shape of your portfolio's
+              ingredient story vs. peers.
             </p>
             <div className="h-72">
               <ResponsiveContainer width="100%" height="100%">
@@ -593,8 +652,10 @@ export function AnalyticsPage() {
             </div>
           </div>
 
-          <div className="card p-4">
-            <h3 className="font-semibold mb-2">Actives by brand (heatmap-style table)</h3>
+          <div className="card p-5">
+            <h3 className="font-display text-base font-semibold mb-2 text-ink-900">
+              Ingredients by brand
+            </h3>
             <div className="overflow-x-auto text-sm">
               <table className="w-full border-collapse">
                 <thead>
@@ -626,15 +687,30 @@ export function AnalyticsPage() {
             </div>
           </div>
 
-          <div className="card p-4">
-            <h3 className="font-semibold mb-2">Recent catalog launches (30d)</h3>
-            <ul className="text-sm space-y-1">
+          <div className="card p-5">
+            <h3 className="font-display text-base font-semibold mb-2 text-ink-900">
+              Recent catalog launches — last 30 days
+            </h3>
+            <ul className="text-sm space-y-1.5">
               {launches.length === 0 && (
-                <li className="text-ink-500">No new SKUs in this window (re-run ingestion after changes).</li>
+                <li className="text-ink-500">
+                  No new SKUs in this window. Tap{" "}
+                  <span className="font-semibold text-ink-900">
+                    Refresh data
+                  </span>{" "}
+                  at the top to pull the latest.
+                </li>
               )}
               {launchPage.map((r, i) => (
-                <li key={`${r.brand_slug}-${launchOffset + i}`}>
-                  <span className="text-ink-500">{r.brand_name}</span> — {r.title}
+                <li
+                  key={`${r.brand_slug}-${launchOffset + i}`}
+                  className="flex gap-2"
+                >
+                  <span className="text-ink-500 font-medium shrink-0">
+                    {r.brand_name}
+                  </span>
+                  <span className="text-ink-300">·</span>
+                  <span className="text-ink-800">{r.title}</span>
                 </li>
               ))}
             </ul>

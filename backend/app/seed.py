@@ -186,6 +186,7 @@ def social_sources_for(slug: str) -> list[dict]:
     if not query:
         return []
     ig_tag = INSTAGRAM_HASHTAGS.get(slug)
+    settings = get_settings()
     out: list[dict] = [
         {
             "kind": "youtube_search",
@@ -213,8 +214,15 @@ def social_sources_for(slug: str) -> list[dict]:
             "url": f"podcast:{query}",
             "config": {"query": query, "country": "in", "limit": 25},
         },
+        # Public forum chatter (no API key): Reddit Atom feed for the search query.
+        {
+            "kind": "reddit_search_rss",
+            "url": f"reddit:{query}",
+            "config": {"query": query, "sort": "new", "t": "month", "max_items": 25},
+        },
     ]
-    if ig_tag:
+    # Only add Instagram Graph when credentials exist; otherwise it just logs OAuth errors.
+    if ig_tag and settings.instagram_access_token and settings.instagram_graph_user_id:
         out.append(
             {
                 "kind": "instagram_graph_hashtag",

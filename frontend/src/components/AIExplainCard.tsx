@@ -5,29 +5,14 @@ import { api } from "../api";
 import { Markdown } from "./Markdown";
 
 type Props = {
-  /** Backend view id, e.g. "dashboard_summary", "compare_scope". */
   view: string;
-  /** Compact JSON payload — only the data shown on screen for this view. */
   payload: Record<string, unknown>;
-  /** Card title shown in the header (e.g. "AI executive read"). */
   title: string;
-  /** Optional one-line subtitle under the title. */
   subtitle?: string;
-  /** Set true for opt-in cards (don't auto-call Gemini until clicked). */
   manualTrigger?: boolean;
-  /** Show the "Ask a follow-up about this view" input. Default true. */
   allowFollowUp?: boolean;
-  /** Visual height for the body. Default 'auto'. */
   className?: string;
 };
-
-/**
- * Reusable AI commentary card.
- *
- * Auto-generates analyst commentary on mount (unless ``manualTrigger``), refetches
- * when the payload meaningfully changes, and lets the user ask one-shot follow-up
- * questions scoped to the same view payload.
- */
 export function AIExplainCard({
   view,
   payload,
@@ -95,30 +80,38 @@ export function AIExplainCard({
 
   return (
     <section
-      className={`card border border-violet-200 bg-gradient-to-br from-violet-50/70 to-white p-4 space-y-3 ${
+      className={`relative overflow-hidden rounded-2xl border border-plum-200/70 bg-gradient-to-br from-plum-50/80 via-blush-50/60 to-white/80 backdrop-blur-md p-5 space-y-3 shadow-glass ${
         className ?? ""
       }`}
     >
-      <header className="flex items-start justify-between gap-3 flex-wrap">
+      <div
+        aria-hidden
+        className="absolute -top-12 -right-10 h-40 w-40 rounded-full bg-gradient-to-br from-plum-200/60 to-blush-200/40 blur-3xl opacity-70"
+      />
+      <header className="relative flex items-start justify-between gap-3 flex-wrap">
         <div>
-          <h3 className="font-semibold text-sm flex items-center gap-2">
-            <Sparkles size={14} className="text-violet-600" />
+          <h3 className="font-semibold text-[15px] flex items-center gap-2 text-ink-900">
+            <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-plum-500 to-blush-500 text-white shadow-sm">
+              <Sparkles size={12} />
+            </span>
             {title}
             {model && (
-              <span className="text-[10px] font-normal uppercase tracking-wide text-violet-700/80 bg-white/70 border border-violet-200 rounded px-1.5 py-0.5">
+              <span className="text-[10px] font-medium uppercase tracking-[0.14em] text-plum-700/80 bg-white/70 border border-plum-200 rounded-full px-2 py-0.5">
                 {model}
                 {cached ? " · cached" : ""}
               </span>
             )}
           </h3>
-          {subtitle && <p className="text-xs text-ink-500 mt-0.5">{subtitle}</p>}
+          {subtitle && (
+            <p className="text-xs text-ink-500 mt-1 ml-9">{subtitle}</p>
+          )}
         </div>
         <div className="flex items-center gap-2">
           {manualTrigger && !text && !isFresh && (
             <button
               type="button"
               onClick={() => mutation.mutate({})}
-              className="text-xs px-2.5 py-1 rounded-md bg-violet-600 text-white hover:bg-violet-700 inline-flex items-center gap-1.5"
+              className="text-xs px-3 py-1.5 rounded-full bg-gradient-to-r from-plum-600 to-blush-600 text-white hover:opacity-95 inline-flex items-center gap-1.5 shadow-sm"
             >
               <Sparkles size={12} /> Generate
             </button>
@@ -128,28 +121,32 @@ export function AIExplainCard({
               type="button"
               onClick={handleRegen}
               disabled={isFresh}
-              className="text-xs px-2 py-1 rounded-md border border-ink-200 text-ink-700 hover:bg-white inline-flex items-center gap-1.5 disabled:opacity-60"
-              title="Regenerate (bypasses cache)"
+              className="text-xs px-2.5 py-1.5 rounded-full border border-ink-200 bg-white/70 text-ink-700 hover:bg-white inline-flex items-center gap-1.5 disabled:opacity-60"
+              title="Regenerate"
             >
-              {isFresh ? <Loader2 size={12} className="animate-spin" /> : <RefreshCw size={12} />}
+              {isFresh ? (
+                <Loader2 size={12} className="animate-spin" />
+              ) : (
+                <RefreshCw size={12} />
+              )}
               Regenerate
             </button>
           )}
         </div>
       </header>
 
-      <div className="min-h-[2.5rem]">
+      <div className="relative min-h-[2.5rem]">
         {isFresh && !text && (
           <p className="text-xs text-ink-500 inline-flex items-center gap-2">
             <Loader2 size={12} className="animate-spin" />
-            Asking the analyst…
+            Consulting the analyst…
           </p>
         )}
         {!isFresh && !text && !error && !manualTrigger && (
           <p className="text-xs text-ink-500">No commentary yet.</p>
         )}
         {error && (
-          <p className="text-xs text-rose-700 bg-rose-50 border border-rose-200 rounded px-2 py-1.5">
+          <p className="text-xs text-rose-700 bg-rose-50 border border-rose-200 rounded-lg px-2.5 py-2">
             {error}
           </p>
         )}
@@ -157,8 +154,8 @@ export function AIExplainCard({
       </div>
 
       {allowFollowUp && (text || error) && (
-        <div className="pt-2 border-t border-violet-100">
-          <label className="text-[11px] text-ink-500 block mb-1">
+        <div className="relative pt-3 border-t border-plum-100">
+          <label className="text-[11px] text-ink-500 block mb-1.5 uppercase tracking-[0.14em] font-medium">
             Ask a follow-up about this view
           </label>
           <div className="flex items-center gap-2">
@@ -169,17 +166,21 @@ export function AIExplainCard({
               onKeyDown={(e) => {
                 if (e.key === "Enter") handleAsk();
               }}
-              placeholder="e.g. Which peer should we benchmark first?"
-              className="flex-1 text-sm px-2.5 py-1.5 rounded-md border border-ink-200 bg-white focus:outline-none focus:ring-2 focus:ring-violet-300"
+              placeholder="Which peer should we benchmark first?"
+              className="flex-1 text-sm px-3 py-2 rounded-full border border-ink-200 bg-white/80 focus:outline-none focus:ring-2 focus:ring-plum-300 focus:border-plum-300"
               disabled={isFresh}
             />
             <button
               type="button"
               onClick={handleAsk}
               disabled={isFresh || !followUp.trim()}
-              className="text-xs px-2.5 py-1.5 rounded-md bg-ink-900 text-white hover:bg-ink-800 inline-flex items-center gap-1.5 disabled:opacity-50"
+              className="text-xs px-3.5 py-2 rounded-full bg-ink-900 text-white hover:bg-ink-800 inline-flex items-center gap-1.5 disabled:opacity-50"
             >
-              {isFresh ? <Loader2 size={12} className="animate-spin" /> : <Send size={12} />}
+              {isFresh ? (
+                <Loader2 size={12} className="animate-spin" />
+              ) : (
+                <Send size={12} />
+              )}
               Ask
             </button>
           </div>

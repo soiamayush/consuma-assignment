@@ -12,10 +12,6 @@ type Props = {
   label?: string;
 };
 
-/**
- * Lightweight server-driven pager. Trusts a `total` from `X-Total-Count`.
- * Hides itself if there is nothing to page through.
- */
 export function Pager({
   total,
   offset,
@@ -37,17 +33,17 @@ export function Pager({
   }
 
   return (
-    <div className="flex items-center justify-between gap-3 text-xs text-ink-600 mt-3 flex-wrap">
-      <div>
-        Showing <span className="tabular-nums font-medium">{start.toLocaleString()}</span>–
-        <span className="tabular-nums font-medium">{end.toLocaleString()}</span> of{" "}
-        <span className="tabular-nums font-medium">{total.toLocaleString()}</span> {label}
+    <div className="flex items-center justify-between gap-3 text-xs text-ink-600 mt-4 flex-wrap">
+      <div className="tabular-nums">
+        Showing <span className="font-semibold text-ink-800">{start.toLocaleString()}</span>–
+        <span className="font-semibold text-ink-800">{end.toLocaleString()}</span> of{" "}
+        <span className="font-semibold text-ink-800">{total.toLocaleString()}</span> {label}
         {loading && <span className="ml-2 text-ink-400">refreshing…</span>}
       </div>
       <div className="flex items-center gap-2">
         {onLimit && (
           <select
-            className="text-xs border border-ink-200 rounded-md px-2 py-1 bg-white"
+            className="text-xs border border-ink-200 rounded-full px-3 py-1.5 bg-white/80 backdrop-blur hover:border-ink-300"
             value={safeLimit}
             onChange={(e) => {
               onLimit(Number(e.target.value));

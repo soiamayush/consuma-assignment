@@ -23,6 +23,8 @@ from __future__ import annotations
 
 import json
 import logging
+import time
+import uuid
 from typing import Any, Iterable, Optional
 
 from sqlalchemy.orm import Session
@@ -33,6 +35,22 @@ from ..models import Competitor, Product, ProductSnapshot
 from .data_brief import build_brief
 
 logger = logging.getLogger(__name__)
+
+def _key_hint(k: str | None) -> str:
+    if not k:
+        return "missing"
+    k = k.strip()
+    if len(k) <= 8:
+        return "present"
+    return f"…{k[-4:]}"
+
+
+def _key_fp(k: str | None) -> str:
+    import hashlib
+
+    if not k:
+        return "missing"
+    return hashlib.sha1(k.strip().encode("utf-8")).hexdigest()[:10]
 
 
 SYSTEM_INSTRUCTIONS = """You are the in-house competitive intelligence analyst for a beauty brand.
@@ -169,6 +187,8 @@ def stream_chat(
         )
         return
 
+    call_id = uuid.uuid4().hex[:10]
+    t0 = time.perf_counter()
     try:
         from google import genai
         from google.genai import types as gtypes
@@ -187,6 +207,16 @@ def stream_chat(
         brief_json = brief_json[:120_000] + "\n…(truncated)"
 
     client = genai.Client(api_key=settings.gemini_api_key)
+    logger.info(
+        "gemini.chat.start id=%s model=%s key=%s key_fp=%s window_days=%s msg_chars=%s history_turns=%s",
+        call_id,
+        settings.gemini_model,
+        _key_hint(settings.gemini_api_key),
+        _key_fp(settings.gemini_api_key),
+        window_days,
+        len(user_message or ""),
+        len(history or []),
+    )
 
     # Build the chat contents: history + new user turn. The brief is sent as a
     # system_instruction so it doesn't leak into chat memory.
@@ -223,7 +253,15 @@ def stream_chat(
                 config=config,
             )
         except Exception as exc:
-            logger.exception("Gemini stream failed")
+            ms = int((time.perf_counter() - t0) * 1000)
+            logger.exception(
+                "gemini.chat.error id=%s model=%s key_fp=%s ms=%s err=%s",
+                call_id,
+                settings.gemini_model,
+                _key_fp(settings.gemini_api_key),
+                ms,
+                type(exc).__name__,
+            )
             yield f"\n\n_(Gemini call failed: {exc})_\n"
             return
 
@@ -251,6 +289,15 @@ def stream_chat(
 
         function_calls = list(function_calls_by_name.values())
         if not function_calls:
+            ms = int((time.perf_counter() - t0) * 1000)
+            logger.info(
+                "gemini.chat.ok id=%s model=%s key_fp=%s ms=%s tool_rounds=%s",
+                call_id,
+                settings.gemini_model,
+                _key_fp(settings.gemini_api_key),
+                ms,
+                _round,
+            )
             return  # done
 
         # Append the model's tool-call turn to context, then execute and add results.

@@ -23,19 +23,11 @@ type Props = {
   height?: number;
 };
 
-const ANCHOR_COLOR = "#d97706";
-const ANCHOR_BAND = "rgba(217, 119, 6, 0.18)";
-const PEER_BAND = "rgba(55, 65, 81, 0.18)";
-const PEER_COLOR = "#374151";
+const ANCHOR_COLOR = "#bf3f5c";
+const ANCHOR_BAND = "rgba(191, 63, 92, 0.18)";
+const PEER_BAND = "rgba(75, 85, 99, 0.16)";
+const PEER_COLOR = "#4b5563";
 
-/**
- * Horizontal price-band ladder: per brand, draws a thin "min–max" whisker plus
- * a fat "p25–p75" box and a labelled median dot. Anchor reference price (if
- * provided) is drawn as a dashed vertical line over every row.
- *
- * It's a lightweight SVG render — no recharts dep needed because we want an
- * exact box layout and labels next to each median dot.
- */
 export function PriceBandLadder({
   rows,
   anchorReference,
@@ -105,7 +97,7 @@ export function PriceBandLadder({
               fill={ANCHOR_COLOR}
               fontWeight={600}
             >
-              anchor median
+              your median
             </text>
           </g>
         )}

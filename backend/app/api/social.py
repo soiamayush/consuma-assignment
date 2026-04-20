@@ -21,7 +21,7 @@ from ..time_utils import utc_now
 
 router = APIRouter(prefix="/api/social", tags=["social"])
 
-VALID_PLATFORMS = ("youtube", "news", "news_bing", "podcast", "instagram")
+VALID_PLATFORMS = ("youtube", "news", "news_bing", "podcast", "instagram", "reddit")
 VALID_SORTS = ("recent", "views", "score")
 
 

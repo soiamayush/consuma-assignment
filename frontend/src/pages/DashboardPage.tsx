@@ -1,12 +1,21 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
-import { ArrowRight, TrendingDown, TrendingUp, Sparkles, Newspaper } from "lucide-react";
+import {
+  ArrowRight,
+  TrendingDown,
+  TrendingUp,
+  Sparkles,
+  Newspaper,
+} from "lucide-react";
 import { useMemo, useState } from "react";
 import { api } from "../api";
 import { StatCard } from "../components/StatCard";
 import { SignalCard } from "../components/SignalCard";
 import { InsightStrip } from "../components/InsightStrip";
 import { AIExplainCard } from "../components/AIExplainCard";
+import { PageHero } from "../components/PageHero";
+
+const WINDOWS = [7, 14, 30, 90];
 
 export function DashboardPage() {
   const [windowDays, setWindowDays] = useState(14);
@@ -17,7 +26,8 @@ export function DashboardPage() {
   });
   const topSignals = useQuery({
     queryKey: ["signals", "top", windowDays],
-    queryFn: () => api.signals({ sort: "importance", limit: 8, window_days: windowDays }),
+    queryFn: () =>
+      api.signals({ sort: "importance", limit: 8, window_days: windowDays }),
   });
   const peers = useQuery({
     queryKey: ["competitors", "peers"],
@@ -39,7 +49,9 @@ export function DashboardPage() {
     if (!s) return null;
     return {
       window_days: windowDays,
-      anchor: anchor.data ? { slug: anchor.data.slug, name: anchor.data.name } : null,
+      anchor: anchor.data
+        ? { slug: anchor.data.slug, name: anchor.data.name }
+        : null,
       totals: {
         total_signals: s.total_signals,
         new_launches: s.new_products,
@@ -63,196 +75,253 @@ export function DashboardPage() {
     };
   }, [s, windowDays, anchor.data, topSignals.data]);
 
+  const anchorName = anchor.data?.name ?? "your brand";
+
   return (
     <div className="space-y-8">
-      {/* header */}
-      <div className="flex items-end justify-between flex-wrap gap-4">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">What changed recently</h1>
-          <p className="text-ink-500 mt-1 text-sm max-w-2xl">
-            Ranked signals from the last {windowDays} days · sorted by importance.
-            <span className="block mt-1 text-ink-400">
-              <strong className="font-medium text-ink-600">Minimalist</strong> (beminimalist.co) is the anchor
-              brand; INKEY List, COSRX, and Dot &amp; Key are peers for price, launches, and ingredient mix.
-              See the{" "}
-              <Link to="/analytics" className="font-semibold text-ink-800 underline">
-                Analytics
-              </Link>{" "}
-              page for cross-brand charts.
-            </span>
-          </p>
-        </div>
-        <div className="flex items-center gap-1 text-sm">
-          {[7, 14, 30, 90].map((d) => (
-            <button
-              key={d}
-              onClick={() => setWindowDays(d)}
-              className={`btn ${
-                windowDays === d ? "bg-ink-900 text-white" : "btn-ghost"
-              }`}
-            >
-              {d}d
-            </button>
-          ))}
-        </div>
-      </div>
+      <PageHero
+        eyebrow="Daily briefing"
+        theme="rose"
+        title={
+          <>
+            The state of <span className="gradient-text">{anchorName}</span>
+            <span className="text-ink-500 font-light"> & the shelf</span>
+          </>
+        }
+        subtitle={
+          <>
+            A curated look at what moved in the last {windowDays} days — new
+            launches, pricing swings, editorial chatter, and white-space you can
+            own. Sorted by importance, never by noise.
+          </>
+        }
+        actions={
+          <div className="flex items-center gap-1 p-1 rounded-full bg-white/70 border border-white/70 shadow-sm">
+            {WINDOWS.map((d) => (
+              <button
+                key={d}
+                onClick={() => setWindowDays(d)}
+                className={`px-3 py-1.5 rounded-full text-xs font-semibold transition ${
+                  windowDays === d
+                    ? "bg-ink-900 text-white shadow-sm"
+                    : "text-ink-600 hover:text-ink-900"
+                }`}
+              >
+                {d}d
+              </button>
+            ))}
+          </div>
+        }
+      />
 
       <InsightStrip
         insights={insights.data?.insights ?? []}
         loading={insights.isLoading}
         title="What's worth your attention"
-        subtitle={`Auto-generated findings from the last ${windowDays} days of catalog + signals.`}
+        subtitle={`Auto-generated findings across catalog, pricing, and buzz over the last ${windowDays} days.`}
       />
 
       {aiPayload && (
         <AIExplainCard
           view="dashboard_summary"
           payload={aiPayload}
-          title="AI executive read"
-          subtitle={`Gemini-written analyst memo over the last ${windowDays} days. Ask follow-ups below.`}
+          title="Executive read"
+          subtitle={`An analyst memo on the last ${windowDays} days. Ask a follow-up below.`}
         />
       )}
 
-      {/* stat cards */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-        <StatCard label="Total signals" value={s?.total_signals ?? "—"} accent />
+        <StatCard
+          label="Total signals"
+          value={s?.total_signals ?? "—"}
+          accent
+        />
         <StatCard
           label="New launches"
           value={s?.new_products ?? "—"}
+          tone="sage"
           sub={
             <span className="inline-flex items-center gap-1">
-              <Sparkles size={12} /> product_launch
+              <Sparkles size={12} /> fresh drops
             </span>
           }
         />
         <StatCard
           label="Price drops"
           value={s?.price_drops ?? "—"}
+          tone="sage"
           sub={
-            <span className="inline-flex items-center gap-1 text-emerald-600">
-              <TrendingDown size={12} /> price_drop
+            <span className="inline-flex items-center gap-1 text-emerald-700">
+              <TrendingDown size={12} /> cheaper
             </span>
           }
         />
         <StatCard
           label="Price increases"
           value={s?.price_increases ?? "—"}
+          tone="gold"
           sub={
-            <span className="inline-flex items-center gap-1 text-amber-600">
-              <TrendingUp size={12} /> price_increase
+            <span className="inline-flex items-center gap-1 text-accent-600">
+              <TrendingUp size={12} /> pricier
             </span>
           }
         />
         <StatCard
           label="Announcements"
           value={s?.blog_posts ?? "—"}
+          tone="plum"
           sub={
-            <span className="inline-flex items-center gap-1 text-sky-600">
-              <Newspaper size={12} /> blog_post
+            <span className="inline-flex items-center gap-1 text-sky-700">
+              <Newspaper size={12} /> editorial
             </span>
           }
         />
       </div>
 
-      {/* main grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-3">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold">Top signals</h2>
-            <Link to="/feed" className="text-sm text-ink-600 hover:text-ink-900 inline-flex items-center gap-1">
+            <h2 className="font-display text-xl md:text-2xl font-semibold text-ink-900">
+              Top signals
+            </h2>
+            <Link
+              to="/feed"
+              className="text-sm text-ink-600 hover:text-blush-700 inline-flex items-center gap-1 font-medium"
+            >
               Full feed <ArrowRight size={14} />
             </Link>
           </div>
-          {topSignals.isLoading && <div className="text-ink-500 text-sm">Loading signals…</div>}
+          {topSignals.isLoading && (
+            <div className="text-ink-500 text-sm">Loading signals…</div>
+          )}
           {topSignals.data?.length === 0 && (
             <div className="card p-6 text-sm text-ink-600">
-              No signals yet. Click <span className="font-semibold">Run ingestion</span> above to populate data.
+              Nothing noteworthy yet. Tap{" "}
+              <span className="font-semibold text-ink-900">Refresh data</span>{" "}
+              at the top to fetch the latest.
             </div>
           )}
-          <div className="space-y-2">
+          <div className="space-y-3">
             {topSignals.data?.map((sig) => (
               <SignalCard key={sig.id} signal={sig} />
             ))}
           </div>
         </div>
 
-        <aside className="space-y-6">
-          <div className="card p-4">
-            <h3 className="font-semibold mb-3">Your brand</h3>
+        <aside className="space-y-5">
+          <div className="card p-5">
+            <div className="text-[11px] uppercase tracking-[0.16em] text-ink-500 font-semibold">
+              Your brand
+            </div>
             {anchor.data ? (
               <Link
                 to={`/competitors/${anchor.data.slug}`}
-                className="block text-sm hover:bg-ink-100 p-2 -mx-2 rounded-md border border-amber-200 bg-accent-50"
+                className="mt-3 block rounded-xl p-4 border border-blush-200 bg-gradient-to-br from-blush-50 to-accent-50 hover:shadow-lift transition"
               >
-                <div className="font-medium text-ink-900 flex items-center gap-2">
+                <div className="font-display text-xl font-semibold text-ink-900 flex items-center gap-2 flex-wrap">
                   {anchor.data.name}
-                  <span className="chip-accent text-[10px] uppercase tracking-wide">Anchor</span>
+                  <span className="chip-accent">Anchor</span>
                 </div>
-                <div className="text-xs text-ink-500 mt-0.5">
-                  {anchor.data.product_count} products · {anchor.data.signal_count} signals
+                <div className="text-xs text-ink-600 mt-1.5 tabular-nums">
+                  <span className="font-semibold text-ink-800">
+                    {anchor.data.product_count}
+                  </span>{" "}
+                  products ·{" "}
+                  <span className="font-semibold text-ink-800">
+                    {anchor.data.signal_count}
+                  </span>{" "}
+                  signals
                 </div>
               </Link>
             ) : (
-              <p className="text-xs text-ink-500">No anchor configured.</p>
+              <p className="text-xs text-ink-500 mt-3">
+                No anchor brand configured yet.
+              </p>
             )}
-            <h3 className="font-semibold mb-3 mt-5">Peer brands</h3>
-            <p className="text-xs text-ink-500 mb-2">
-              Everyone in <code className="text-[11px]">/api/competitors</code> is a peer (Minimalist is
-              separate at <code className="text-[11px]">/api/competitors/anchor</code>).
-            </p>
-            <ul className="space-y-2">
-              {peers.data?.map((c) => (
-                <li key={c.id}>
-                  <Link
-                    to={`/competitors/${c.slug}`}
-                    className="flex items-center justify-between gap-2 text-sm hover:bg-ink-100 p-2 -mx-2 rounded-md"
-                  >
-                    <div>
-                      <div className="font-medium text-ink-900">{c.name}</div>
-                      <div className="text-xs text-ink-500">
-                        {c.product_count} products · {c.signal_count} signals
+
+            <div className="mt-6">
+              <div className="text-[11px] uppercase tracking-[0.16em] text-ink-500 font-semibold">
+                Peer set
+              </div>
+              <p className="text-xs text-ink-500 mt-1 mb-3">
+                Brands you're tracking on the same shelf.
+              </p>
+              <ul className="space-y-1.5">
+                {peers.data?.map((c) => (
+                  <li key={c.id}>
+                    <Link
+                      to={`/competitors/${c.slug}`}
+                      className="flex items-center justify-between gap-2 text-sm hover:bg-white p-2 -mx-2 rounded-lg transition"
+                    >
+                      <div className="min-w-0">
+                        <div className="font-medium text-ink-900 truncate">
+                          {c.name}
+                        </div>
+                        <div className="text-xs text-ink-500 tabular-nums">
+                          {c.product_count} products · {c.signal_count} signals
+                        </div>
                       </div>
-                    </div>
-                    <div className="text-xs font-mono text-ink-400">
-                      w {c.brand_weight.toFixed(1)}
-                    </div>
-                  </Link>
-                </li>
-              ))}
-            </ul>
+                      <div className="text-[11px] font-mono text-ink-400 shrink-0">
+                        w {c.brand_weight.toFixed(1)}
+                      </div>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
           </div>
 
-          <div className="card p-4">
-            <h3 className="font-semibold mb-3">Top themes</h3>
+          <div className="card p-5">
+            <h3 className="font-display text-base font-semibold text-ink-900 mb-3">
+              Top themes
+            </h3>
             {s?.top_themes?.length ? (
               <div className="flex flex-wrap gap-1.5">
                 {s.top_themes.map((t) => (
                   <span key={t.theme} className="chip">
-                    {t.theme} <span className="text-ink-400 font-mono ml-1">{t.count}</span>
+                    {t.theme.replace(/_/g, " ")}{" "}
+                    <span className="text-ink-400 font-mono ml-1">
+                      {t.count}
+                    </span>
                   </span>
                 ))}
               </div>
             ) : (
-              <div className="text-sm text-ink-500">No themes yet.</div>
+              <div className="text-sm text-ink-500">
+                Themes will appear here once signals roll in.
+              </div>
             )}
           </div>
 
-          <div className="card p-4">
-            <h3 className="font-semibold mb-3">Signal volume by brand</h3>
-            <ul className="space-y-2">
+          <div className="card p-5">
+            <h3 className="font-display text-base font-semibold text-ink-900 mb-3">
+              Signal volume by brand
+            </h3>
+            <ul className="space-y-2.5">
               {s?.by_competitor?.map((c) => {
-                const max = Math.max(1, ...(s.by_competitor.map((x) => x.signal_count) ?? [1]));
+                const max = Math.max(
+                  1,
+                  ...(s.by_competitor.map((x) => x.signal_count) ?? [1]),
+                );
                 const pct = (c.signal_count / max) * 100;
                 return (
                   <li key={c.slug} className="text-sm">
                     <div className="flex justify-between">
-                      <Link to={`/competitors/${c.slug}`} className="hover:underline">
+                      <Link
+                        to={`/competitors/${c.slug}`}
+                        className="hover:text-blush-700 font-medium"
+                      >
                         {c.name}
                       </Link>
-                      <span className="tabular-nums text-ink-500">{c.signal_count}</span>
+                      <span className="tabular-nums text-ink-500">
+                        {c.signal_count}
+                      </span>
                     </div>
-                    <div className="h-1 bg-ink-100 rounded-full mt-1 overflow-hidden">
-                      <div className="h-full bg-ink-700" style={{ width: `${pct}%` }} />
+                    <div className="h-1.5 bg-ink-100 rounded-full mt-1.5 overflow-hidden">
+                      <div
+                        className="h-full rounded-full bg-gradient-to-r from-plum-500 to-blush-500"
+                        style={{ width: `${pct}%` }}
+                      />
                     </div>
                   </li>
                 );

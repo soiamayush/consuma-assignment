@@ -59,9 +59,9 @@ operational signals** (what changed) from **(b) portfolio analytics**
 
 ## Demo video (Consuma submission)
 
-Add your **Loom** or **Google Drive** walkthrough here once recorded (2–4 minutes is enough: dashboard → signal → compare → analytics → buzz → optional Ask AI / ingestion).
+2–4 minutes is enough: dashboard → signal → compare → analytics → buzz → optional Ask AI / refresh history.
 
-**Demo link:** _paste URL tomorrow_
+**Demo link (Loom):** https://www.loom.com/share/aca83eecbcc0413981707bff7b9d973b
 
 ## Demo flow (no internet needed)
 
